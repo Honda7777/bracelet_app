@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
 
 app = Flask(__name__)
-app.secret_key = "bracelet_secret_key"
+app.secret_key = os.environ.get('SECRET_KEY', 'bracelet_secret_key')
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://neondb_owner:npg_3OCrnX0WYHkT@ep-ancient-haze-agk3hsyl-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "postgresql://neondb_owner:npg_3OCrnX0WYHkT@ep-ancient-haze-agk3hsyl-pooler.c-2.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -313,4 +314,4 @@ def migrate_db():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all() 
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
