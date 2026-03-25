@@ -1,0 +1,78 @@
+<!-- Navigation Bar Component -->
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-left">
+            <div class="nav-logo">
+                <a href="/">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Salus Logo" class="logo-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
+                    <span class="logo-text">Salus</span>
+                </a>
+            </div>
+            <a href="/" class="nav-link">Home</a>
+            <a href="/products" class="nav-link">Products</a>
+        </div>
+
+        <div class="nav-right" id="navMenu">
+            <a href="/account" class="nav-link">Account</a>
+            <div class="user-info">
+                <span id="navUsername">Loading...</span>
+                <span id="navAge">Loading...</span>
+            </div>
+        </div>
+
+        <div class="nav-toggle" id="navToggle">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+    </div>
+</nav>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const navToggle = document.getElementById('navToggle');
+    const navMenu = document.getElementById('navMenu');
+    
+    if (navToggle && navMenu) {
+        navToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+        
+        // Close menu when clicking on a link
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            });
+        });
+    }
+    
+    // Load user info in navigation
+    async function loadNavUserInfo() {
+        try {
+            const response = await fetch('/get_data');
+            const data = await response.json();
+            
+            if (data.Username && data.Username !== 'Guest' && !data.error) {
+                document.getElementById('navUsername').textContent = data.Username;
+            } else {
+                document.getElementById('navUsername').textContent = 'Guest';
+            }
+            
+            if (data.Age && data.Age !== "Not set") {
+                document.getElementById('navAge').textContent = `Age: ${data.Age}`;
+            } else {
+                document.getElementById('navAge').textContent = 'Age: --';
+            }
+        } catch (err) {
+            console.error('Error loading nav user info:', err);
+            document.getElementById('navUsername').textContent = 'Error';
+            document.getElementById('navAge').textContent = 'Error';
+        }
+    }
+    
+    loadNavUserInfo();
+});
+</script>

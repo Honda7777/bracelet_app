@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Username</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="change-container">
+        <h1>Change Username</h1>
+        
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+        
+        {% if success %}
+            <div class="success">{{ success }}</div>
+        {% endif %}
+        
+        <div class="current-info">
+            <h3>Current Information</h3>
+            <p><strong>Current Username:</strong> {{ session['username'] }}</p>
+        </div>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="new_username">New Username:</label>
+                <input type="text" id="new_username" name="new_username" placeholder="Enter new username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="current_password">Current Password:</label>
+                <input type="password" id="current_password" name="current_password" placeholder="Enter current password" required>
+            </div>
+            
+            <button type="submit" class="btn">Change Username</button>
+            <a href="/account" class="btn btn-secondary">Back to Account</a>
+        </form>
+        
+        <div class="requirements">
+            <h4>Username Requirements:</h4>
+            <ul>
+                <li>Must be unique (not already taken by another user)</li>
+                <li>Must be at least 3 characters long</li>
+                <li>Can contain letters, numbers, and underscores</li>
+                <li>Cannot contain spaces or special characters</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Real-time username validation
+        document.getElementById('new_username').addEventListener('input', function() {
+            const username = this.value;
+            const requirements = document.querySelector('.requirements');
+            
+            if (username.length > 0 && username.length < 3) {
+                requirements.style.borderLeft = '4px solid #ff6b6b';
+            } else if (username.includes(' ') || /[^a-zA-Z0-9_]/.test(username)) {
+                requirements.style.borderLeft = '4px solid #ff6b6b';
+            } else {
+                requirements.style.borderLeft = '4px solid #4CAF50';
+            }
+        });
+    </script>
+    {% include 'footer.html' %}
+</body>
+</html>

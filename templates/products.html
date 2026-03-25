@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salus - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="shop-container">
+        <div class="products-split" id="productsSplit">
+            <!-- Salus Bracelet -->
+            <div class="product-half bracelet-half" id="braceletHalf" onclick="expandProduct('bracelet')">
+                <div class="product-content">
+                    <div class="bracelet-3d-container">
+                        <img src="{{ url_for('static', filename='band.png') }}" alt="Salus Band" class="bracelet-3d" id="bracelet3D" onerror="this.style.display='none';">
+                    </div>
+                    <h2 class="product-name" id="braceletName">Salus Band</h2>
+                    <p class="product-status available">Preview</p>
+                    <div class="product-preview">
+                        <p>Advanced health tracking bracelet with real-time monitoring</p>
+                    </div>
+                    <button class="btn-order" onclick="event.stopPropagation(); orderProduct('bracelet')">Order Now</button>
+                </div>
+                
+                <!-- Expanded View -->
+                <div class="product-expanded" id="braceletExpanded">
+                    <button class="close-btn" onclick="event.stopPropagation(); collapseProduct()">×</button>
+                    <div class="expanded-content">
+                        <div class="expanded-content-left">
+                            <h2>Salus Band</h2>
+                            <div class="product-features-expanded">
+                                <h3>Key Features:</h3>
+                                <ul>
+                                    <li>24/7 Heart Rate Monitoring</li>
+                                    <li>Sleep Quality Analysis</li>
+                                    <li>Activity Tracking</li>
+                                    <li>Real-time Health Alerts</li>
+                                </ul>
+                            </div>
+                            <div class="product-price-expanded">Price</div>
+                            <button class="btn-order-large" onclick="event.stopPropagation(); orderProduct('bracelet')">Order Now</button>
+                        </div>
+                        <div class="expanded-content-right">
+                            <div class="bracelet-3d-expanded-container">
+                                <img src="{{ url_for('static', filename='band.png') }}" alt="Salus Band" class="bracelet-3d-expanded" id="bracelet3DExpanded" onerror="this.style.display='none';">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Salus Ring -->
+            <div class="product-half ring-half" id="ringHalf" onclick="expandProduct('ring')">
+                <div class="product-content">
+                    <div class="ring-3d-container">
+                        <img src="{{ url_for('static', filename='ring.png') }}" alt="Salus Ring" class="ring-3d" id="ring3D" onerror="this.style.display='none';">
+                    </div>
+                    <h2 class="product-name">Salus Ring</h2>
+                    <p class="product-status coming-soon">Preview</p>
+                    <div class="product-preview">
+                        <p>Elegant smart ring with comprehensive health insights</p>
+                    </div>
+                    <button class="btn-order" disabled>Coming Soon</button>
+                </div>
+                
+                <!-- Expanded View -->
+                <div class="product-expanded" id="ringExpanded">
+                    <button class="close-btn" onclick="event.stopPropagation(); collapseProduct()">×</button>
+                    <div class="expanded-content">
+                        <div class="expanded-content-left">
+                            <h2>Salus Ring</h2>
+                            <div class="product-features-expanded">
+                                <h3>Key Features:</h3>
+                                <ul>
+                                    <li>Sleek, Minimalist Design</li>
+                                    <li>Continuous Health Monitoring</li>
+                                    <li>Stress Level Tracking</li>
+                                    <li>Body Temperature Monitoring</li>
+                                </ul>
+                            </div>
+                            <div class="product-price-expanded">Coming Soon</div>
+                            <button class="btn-order-large" disabled>Notify Me When Available</button>
+                        </div>
+                        <div class="expanded-content-right">
+                            <div class="ring-3d-expanded-container">
+                                <img src="{{ url_for('static', filename='ring.png') }}" alt="Salus Ring" class="ring-3d-expanded" id="ring3DExpanded" onerror="this.style.display='none';">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let expandedProduct = null;
+        
+        function expandProduct(product) {
+            if (expandedProduct === product) {
+                collapseProduct();
+                return;
+            }
+            
+            expandedProduct = product;
+            const shopContainer = document.querySelector('.shop-container');
+            const split = document.getElementById('productsSplit');
+            const shopHeader = document.querySelector('.shop-header');
+            const braceletHalf = document.getElementById('braceletHalf');
+            const ringHalf = document.getElementById('ringHalf');
+            const braceletExpanded = document.getElementById('braceletExpanded');
+            const ringExpanded = document.getElementById('ringExpanded');
+            
+            // Hide header with smooth animation
+            if (shopHeader) {
+                shopHeader.classList.add('hidden');
+            }
+            
+            // Add expanded class to container and split
+            if (shopContainer) {
+                shopContainer.classList.add('expanded');
+            }
+            split.classList.add('expanded');
+            
+            if (product === 'bracelet') {
+                braceletHalf.classList.add('active');
+                ringHalf.classList.add('inactive');
+                braceletExpanded.classList.add('show');
+                ringExpanded.classList.remove('show');
+                
+                // Animate 3D bracelet from name to right side
+                animateBracelet3D();
+            } else {
+                ringHalf.classList.add('active');
+                braceletHalf.classList.add('inactive');
+                ringExpanded.classList.add('show');
+                braceletExpanded.classList.remove('show');
+                
+                // Animate 3D ring from name to right side
+                animateRing3D();
+            }
+        }
+        
+        function animateRing3D() {
+            const ring3D = document.getElementById('ring3D');
+            const ringName = document.querySelector('.ring-half .product-name');
+            const ring3DExpanded = document.getElementById('ring3DExpanded');
+            const ring3DContainer = document.querySelector('.ring-3d-container');
+            
+            if (!ring3D || !ringName) return;
+            
+            // Check if image exists and is loaded
+            if (ring3D.complete && ring3D.naturalHeight !== 0) {
+                // Image is loaded, proceed with animation
+                startAnimation();
+            } else if (ring3D.style.display !== 'none') {
+                // Wait for image to load
+                ring3D.onload = startAnimation;
+            } else {
+                // Image not available, just show expanded view
+                if (ring3DExpanded) {
+                    setTimeout(() => {
+                        ring3DExpanded.style.display = 'block';
+                    }, 500);
+                }
+            }
+            
+            function startAnimation() {
+                // Get initial position (from the container above the name)
+                const containerRect = ring3DContainer.getBoundingClientRect();
+                const nameRect = ringName.getBoundingClientRect();
+                
+                // Create a clone for animation
+                const animatedImg = ring3D.cloneNode(true);
+                animatedImg.id = 'ring3DAnimated';
+                animatedImg.style.position = 'fixed';
+                animatedImg.style.left = containerRect.left + (containerRect.width / 2) - 100 + 'px';
+                animatedImg.style.top = nameRect.top - 200 + 'px';
+                animatedImg.style.width = '200px';
+                animatedImg.style.height = 'auto';
+                animatedImg.style.zIndex = '10000';
+                animatedImg.style.pointerEvents = 'none';
+                animatedImg.style.transition = 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+                animatedImg.style.opacity = '1';
+                document.body.appendChild(animatedImg);
+                
+                // Hide original
+                ring3D.style.opacity = '0';
+                
+                // Animate to right side
+                setTimeout(() => {
+                    animatedImg.style.left = (window.innerWidth - 350) + 'px';
+                    animatedImg.style.top = (window.innerHeight / 2 - 175) + 'px';
+                    animatedImg.style.width = '350px';
+                    animatedImg.style.transform = 'none';
+                    
+                    // After animation, show the expanded 3D image and remove animated one
+                    setTimeout(() => {
+                        animatedImg.remove();
+                        if (ring3DExpanded) {
+                            ring3DExpanded.style.display = 'block';
+                            ring3DExpanded.style.opacity = '0';
+                            ring3DExpanded.style.animation = 'fadeInScale 0.6s ease forwards';
+                        }
+                    }, 1200);
+                }, 10);
+            }
+        }
+        
+        function animateBracelet3D() {
+            const bracelet3D = document.getElementById('bracelet3D');
+            const braceletName = document.getElementById('braceletName');
+            const bracelet3DExpanded = document.getElementById('bracelet3DExpanded');
+            const bracelet3DContainer = document.querySelector('.bracelet-3d-container');
+            
+            if (!bracelet3D || !braceletName) return;
+            
+            // Check if image exists and is loaded
+            if (bracelet3D.complete && bracelet3D.naturalHeight !== 0) {
+                // Image is loaded, proceed with animation
+                startAnimation();
+            } else if (bracelet3D.style.display !== 'none') {
+                // Wait for image to load
+                bracelet3D.onload = startAnimation;
+            } else {
+                // Image not available, just show expanded view
+                if (bracelet3DExpanded) {
+                    setTimeout(() => {
+                        bracelet3DExpanded.style.display = 'block';
+                    }, 500);
+                }
+            }
+            
+            function startAnimation() {
+                // Get initial position (from the container above the name)
+                const containerRect = bracelet3DContainer.getBoundingClientRect();
+                const nameRect = braceletName.getBoundingClientRect();
+                
+                // Create a clone for animation
+                const animatedImg = bracelet3D.cloneNode(true);
+                animatedImg.id = 'bracelet3DAnimated';
+                animatedImg.style.position = 'fixed';
+                animatedImg.style.left = containerRect.left + (containerRect.width / 2) - 100 + 'px';
+                animatedImg.style.top = nameRect.top - 200 + 'px';
+                animatedImg.style.width = '200px';
+                animatedImg.style.height = 'auto';
+                animatedImg.style.zIndex = '10000';
+                animatedImg.style.pointerEvents = 'none';
+                animatedImg.style.transition = 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)';
+                animatedImg.style.opacity = '1';
+                document.body.appendChild(animatedImg);
+                
+                // Hide original
+                bracelet3D.style.opacity = '0';
+                
+                // Animate to right side
+                setTimeout(() => {
+                    animatedImg.style.left = (window.innerWidth - 350) + 'px';
+                    animatedImg.style.top = (window.innerHeight / 2 - 175) + 'px';
+                    animatedImg.style.width = '350px';
+                    animatedImg.style.transform = 'none';
+                    
+                    // After animation, show the expanded 3D image and remove animated one
+                    setTimeout(() => {
+                        animatedImg.remove();
+                        if (bracelet3DExpanded) {
+                            bracelet3DExpanded.style.display = 'block';
+                            bracelet3DExpanded.style.opacity = '0';
+                            bracelet3DExpanded.style.animation = 'fadeInScale 0.6s ease forwards';
+                        }
+                    }, 1200);
+                }, 10);
+            }
+        }
+        
+        function collapseProduct() {
+            expandedProduct = null;
+            const shopContainer = document.querySelector('.shop-container');
+            const split = document.getElementById('productsSplit');
+            const shopHeader = document.querySelector('.shop-header');
+            const braceletHalf = document.getElementById('braceletHalf');
+            const ringHalf = document.getElementById('ringHalf');
+            const braceletExpanded = document.getElementById('braceletExpanded');
+            const ringExpanded = document.getElementById('ringExpanded');
+            const bracelet3D = document.getElementById('bracelet3D');
+            const ring3D = document.getElementById('ring3D');
+            const bracelet3DExpanded = document.getElementById('bracelet3DExpanded');
+            const ring3DExpanded = document.getElementById('ring3DExpanded');
+            const animatedImg = document.getElementById('bracelet3DAnimated');
+            const animatedRing = document.getElementById('ring3DAnimated');
+            
+            // Show header with smooth animation
+            if (shopHeader) {
+                shopHeader.classList.remove('hidden');
+            }
+            
+            // Remove expanded class from container
+            if (shopContainer) {
+                shopContainer.classList.remove('expanded');
+            }
+            
+            // Remove any animated images
+            if (animatedImg) {
+                animatedImg.remove();
+            }
+            if (animatedRing) {
+                animatedRing.remove();
+            }
+            
+            // Reset 3D bracelet
+            if (bracelet3D) {
+                bracelet3D.style.opacity = '1';
+            }
+            if (bracelet3DExpanded) {
+                bracelet3DExpanded.style.display = 'none';
+                bracelet3DExpanded.style.animation = '';
+            }
+            
+            // Reset 3D ring
+            if (ring3D) {
+                ring3D.style.opacity = '1';
+            }
+            if (ring3DExpanded) {
+                ring3DExpanded.style.display = 'none';
+                ring3DExpanded.style.animation = '';
+            }
+            
+            // Remove expanded class
+            split.classList.remove('expanded');
+            braceletHalf.classList.remove('active', 'inactive');
+            ringHalf.classList.remove('active', 'inactive');
+            braceletExpanded.classList.remove('show');
+            ringExpanded.classList.remove('show');
+        }
+        
+        function orderProduct(product) {
+            if (product === 'bracelet') {
+                alert('Redirecting to order page for Salus Bracelet...');
+                // Add your order logic here
+            }
+        }
+        
+        // Close on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && expandedProduct) {
+                collapseProduct();
+            }
+        });
+    </script>
+    {% include 'footer.html' %}
+</body>
+</html>

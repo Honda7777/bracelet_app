@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Information</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="account-container">
+        <div class="account-header">
+            <h1>Account Information</h1>
+            <p>Manage your account settings and view your information</p>
+        </div>
+        
+        <div class="account-sections">
+            <!-- Personal Information -->
+            <div class="account-section">
+                <div class="section-title">
+                    Personal Information
+                </div>
+                
+                {% if session.get('username') %}
+                <div class="info-item">
+                    <span class="info-label">Username:</span>
+                    <span class="info-value" id="username">Loading...</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Age:</span>
+                    <span class="info-value" id="age">Loading...</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Gender:</span>
+                    <span class="info-value" id="gender">Loading...</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Weight:</span>
+                    <span class="info-value" id="weight">Loading...</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Height:</span>
+                    <span class="info-value" id="height">Loading...</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Member Since:</span>
+                    <span class="info-value" id="memberSince">Loading...</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Account Status:</span>
+                    <span class="info-value" style="color: #4CAF50;">Active</span>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <a href="/profile" class="btn">Edit Profile</a>
+                    <a href="/logout" class="btn btn-secondary">Logout</a>
+                </div>
+                <div class="danger-section">
+                    <a href="/delete-account" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">
+                        Delete Account
+                    </a>
+                </div>
+                {% else %}
+                <div class="info-item" style="justify-content: center;">
+                    <a href="/login" class="btn">Login</a>
+                    <a href="/register" class="btn btn-secondary">Sign Up</a>
+                </div>
+                {% endif %}
+            </div>
+            
+            
+            
+            <!-- Account Actions -->
+            <div class="account-section">
+                <div class="section-title">
+                    Account Actions
+                </div>
+                
+                <div class="account-actions">
+                    <a href="/wishlist" class="btn">My Wishlist</a>
+                    <a href="/privacy" class="btn">Privacy Settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
+
+    <script>
+        async function loadAccountData() {
+            try {
+                const response = await fetch('/get_data');
+                const data = await response.json();
+                
+                if (data.Username) {
+                    document.getElementById('username').textContent = data.Username;
+                } else {
+                    document.getElementById('username').textContent = 'Not available';
+                }
+                
+                if (data.Age && data.Age !== "Not set") {
+                    document.getElementById('age').textContent = data.Age;
+                } else {
+                    document.getElementById('age').textContent = 'Not set';
+                }
+                
+                if (data.Gender && data.Gender !== "Not set") {
+                    document.getElementById('gender').textContent = data.Gender;
+                } else {
+                    document.getElementById('gender').textContent = 'Not set';
+                }
+                
+                if (data.Weight && data.Weight !== "Not set") {
+                    document.getElementById('weight').textContent = data.Weight;
+                } else {
+                    document.getElementById('weight').textContent = 'Not set';
+                }
+                
+                if (data.Height && data.Height !== "Not set") {
+                    document.getElementById('height').textContent = data.Height;
+                } else {
+                    document.getElementById('height').textContent = 'Not set';
+                }
+                
+                // Set member since date (you can modify this based on your user creation date)
+                document.getElementById('memberSince').textContent = 'Today';
+                
+                // Removed statistics section; nothing to update here
+                
+            } catch (err) {
+                console.error('Error loading account data:', err);
+                document.getElementById('username').textContent = 'Error loading';
+                document.getElementById('age').textContent = 'Error loading';
+                document.getElementById('memberSince').textContent = 'Error loading';
+            }
+        }
+        
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadAccountData);
+    </script>
+</body>
+</html>
+

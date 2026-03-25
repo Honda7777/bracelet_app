@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="profile-container">
+        <h1>Profile Settings</h1>
+        
+        <div id="message-container"></div>
+        
+        <div class="current-info">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Personal Information</h3>
+            </div>
+            
+            <div class="profile-field">
+                <label><strong>Username:</strong></label>
+                <span class="profile-value" id="username-display">{{ session['username'] }}</span>
+            </div>
+            
+            <div class="profile-field">
+                <label><strong>Age:</strong></label>
+                <span class="profile-value" id="age-display">Loading...</span>
+                <div class="profile-edit" style="display: none;">
+                    <input type="number" id="age-input" min="1" max="120" placeholder="Enter age">
+                </div>
+            </div>
+            
+            <div class="profile-field">
+                <label><strong>Gender:</strong></label>
+                <span class="profile-value" id="gender-display">Loading...</span>
+                <div class="profile-edit" style="display: none;">
+                    <select id="gender-input">
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="profile-field">
+                <label><strong>Weight (kg):</strong></label>
+                <span class="profile-value" id="weight-display">Loading...</span>
+                <div class="profile-edit" style="display: none;">
+                    <input type="number" id="weight-input" min="1" max="700" placeholder="Enter weight">
+                </div>
+            </div>
+            
+            <div class="profile-field">
+                <label><strong>Height (cm):</strong></label>
+                <span class="profile-value" id="height-display">Loading...</span>
+                <div class="profile-edit" style="display: none;">
+                    <input type="number" id="height-input" min="30" max="300" placeholder="Enter height">
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <a href="/account" class="btn btn-secondary">Back to Account</a>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        let originalValues = {};
+        let saveTimeouts = {};
+
+        // Load current profile info and enable edit mode
+        async function loadCurrentInfo() {
+            try {
+                const response = await fetch('/get_data');
+                const data = await response.json();
+                
+                document.getElementById('age-display').textContent = (data.Age && data.Age !== "Not set") ? data.Age : "Not set";
+                document.getElementById('gender-display').textContent = (data.Gender && data.Gender !== "Not set") ? data.Gender : "Not set";
+                document.getElementById('weight-display').textContent = (data.Weight && data.Weight !== "Not set") ? data.Weight + " kg" : "Not set";
+                document.getElementById('height-display').textContent = (data.Height && data.Height !== "Not set") ? data.Height + " cm" : "Not set";
+                
+                // Store original values
+                originalValues = {
+                    age: data.Age !== "Not set" ? data.Age : "",
+                    gender: data.Gender !== "Not set" ? data.Gender : "",
+                    weight: data.Weight !== "Not set" ? data.Weight : "",
+                    height: data.Height !== "Not set" ? data.Height : ""
+                };
+                
+                // Enable edit mode automatically
+                enableEditMode();
+            } catch (err) {
+                console.error('Error loading profile:', err);
+                showMessage('Error loading profile data', 'error');
+            }
+        }
+
+        function enableEditMode() {
+            const fields = ['age', 'gender', 'weight', 'height'];
+            
+            fields.forEach(field => {
+                const fieldElement = document.getElementById(field + '-display').parentElement;
+                const display = document.getElementById(field + '-display');
+                const edit = fieldElement.querySelector('.profile-edit');
+                const input = field === 'gender' 
+                    ? document.getElementById('gender-input') 
+                    : document.getElementById(field + '-input');
+                
+                if (edit && input) {
+                    display.style.display = 'none';
+                    edit.style.display = 'flex';
+                    edit.style.gap = '10px';
+                    edit.style.alignItems = 'center';
+                    
+                    // Set input/select values
+                    input.value = originalValues[field] || '';
+                    
+                    // Add auto-save event listeners
+                    if (field === 'gender') {
+                        input.addEventListener('change', () => autoSave(field));
+                } else {
+                        input.addEventListener('blur', () => autoSave(field));
+                        input.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') {
+                                e.target.blur();
+                }
+                        });
+                    }
+                }
+            });
+        }
+
+        async function autoSave(field) {
+            const input = field === 'gender' 
+                ? document.getElementById('gender-input') 
+                : document.getElementById(field + '-input');
+            const value = input ? input.value.trim() : '';
+            const display = document.getElementById(field + '-display');
+            
+            // Clear any existing timeout for this field
+            if (saveTimeouts[field]) {
+                clearTimeout(saveTimeouts[field]);
+            }
+            
+            // Debounce: wait 500ms after user stops typing/selecting
+            saveTimeouts[field] = setTimeout(async () => {
+                // Skip if value hasn't changed
+                if (value === originalValues[field]) {
+                    return;
+                }
+
+                // Validation
+                if (field === 'age' && value && (parseInt(value) < 1 || parseInt(value) > 120)) {
+                    showMessage('Please enter a valid age (1-120)', 'error');
+                    input.value = originalValues[field] || '';
+                    return;
+                }
+                if (field === 'weight' && value && (parseInt(value) < 1 || parseInt(value) > 700)) {
+                    showMessage('Please enter a valid weight (1-700 kg)', 'error');
+                    input.value = originalValues[field] || '';
+                    return;
+                }
+                if (field === 'height' && value && (parseInt(value) < 30 || parseInt(value) > 300)) {
+                    showMessage('Please enter a valid height (30-300 cm)', 'error');
+                    input.value = originalValues[field] || '';
+                    return;
+                }
+                
+                try {
+                    const updateData = {};
+                    updateData[field] = value;
+                    
+                    const response = await fetch('/update-profile', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updateData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Update display
+                        if (field === 'weight') {
+                            display.textContent = value ? value + " kg" : "Not set";
+                        } else if (field === 'height') {
+                            display.textContent = value ? value + " cm" : "Not set";
+                        } else {
+                            display.textContent = value || "Not set";
+                        }
+                        
+                        // Update original value
+                        originalValues[field] = value;
+                        
+                        showMessage('Profile updated successfully!', 'success');
+                } else {
+                        showMessage(result.error || 'Failed to update profile', 'error');
+                        // Revert input value on error
+                        input.value = originalValues[field] || '';
+                }
+            } catch (err) {
+                    console.error('Error updating profile:', err);
+                    showMessage('Error updating profile. Please try again.', 'error');
+                    // Revert input value on error
+                    input.value = originalValues[field] || '';
+                }
+            }, 500);
+        }
+
+        function showMessage(message, type) {
+            const container = document.getElementById('message-container');
+            container.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 3000);
+        }
+        
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', loadCurrentInfo);
+    </script>
+    {% include 'footer.html' %}
+</body>
+</html>

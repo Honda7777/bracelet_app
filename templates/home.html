@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bracelet Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="home-container">
+        <h1>Welcome to Salus</h1>
+        <p class="home-subtitle">
+        Description 
+        </p>
+
+        <div class="home-buttons">
+            <a href="/shop" class="btn">Browse Shop</a>
+            <a href="/account" class="btn btn-secondary">Manage Account</a>
+        </div>
+    </div>
+    {% include 'footer.html' %}
+</body>
+</html>
